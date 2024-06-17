@@ -9,8 +9,6 @@ def send_photo(chat_id, caption, photo):
     TELEGRAM_BASE_URL, TOKEN = get_constants()
     url = f'{TELEGRAM_BASE_URL}{TOKEN}/sendPhoto'
 
-    caption = f"```seed {caption}```"
-
     with open(photo, 'rb') as photo:
         # multipart/form-data
         data = {
