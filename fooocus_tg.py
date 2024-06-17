@@ -25,10 +25,12 @@ def get_styles_file(file_path: str):
         seed = json_parameters["seed"]
         full_negative_prompt = json_parameters["full_negative_prompt"]
         full_prompt = json_parameters["full_prompt"]
+        styles = json_parameters["styles"]
     except KeyError:
         seed = "PLEASE_ENABLE_METADATA_WITH_FOOOCUS"
         full_negative_prompt = ["unknown"]
         full_prompt = ["unknown"]
+        styles = ["unknown"]
 
     this_style = {
         "name": seed + "_original",
@@ -39,9 +41,10 @@ def get_styles_file(file_path: str):
     # remove metadata from the image before sending to telegram
     # metadata is removed when downloaded from telegram, however if it changes in the future
     # this will ensure that the metadata is removed
+
     img.save(file_path, exif=b'')
     json_combined_object = json.dumps([this_style])
-    return json_combined_object, seed
+    return json_combined_object, seed, styles
 
 
 def monitor_folders():
@@ -55,18 +58,24 @@ def monitor_folders():
         for file in files:
             if file.endswith(".png") or file.endswith(".jpg") or file.endswith(".jpeg") or file.endswith(".webp"):
                 file = os.path.join(root, file)
-                styles, seed = get_styles_file(file)
-                send_to_telegram(file, styles, seed)
+                try:
+                    styles, seed, styles_str = get_styles_file(file)
+                except OSError: # Truncated file
+                    continue
+                send_to_telegram(file, styles, seed, styles_str)
                 delete_local(file)
                 count_processed += 1
     return count_processed
 
 
-def send_to_telegram(image_path: str, styles_json: str, seed: str):
+def send_to_telegram(image_path: str, styles_json: str, seed: str, styles_str:str):
     """Send the images to telegram"""
+
+    caption = f"Seed: {seed}\nStyles: {styles_str}"
+
     CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
     send_photo(CHAT_ID,
-               seed,
+               caption,
                image_path)
     styles_json_path = f"{seed}.json"
     with open(styles_json_path, "w") as f:
