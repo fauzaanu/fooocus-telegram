@@ -1,4 +1,4 @@
-# 📷 Fooocus Telegram Bot
+# 📷 Fooocus Telegram
 
 ![img.png](assets/img.png)
 
